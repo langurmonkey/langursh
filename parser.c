@@ -37,6 +37,7 @@ char *read_line(void) {
         if((*line++ = c) == '\n')
             break;
     }
+    // remove \n at the end
     *--line = '\0';
     return linep;
 }
@@ -73,7 +74,6 @@ char **tokenize_line(char *line){
     tokens[position] = NULL;
     return tokens;
 }
-
 
 void replace_str(char *target, const char *needle, const char *replacement)
 {

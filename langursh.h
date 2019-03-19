@@ -13,6 +13,11 @@
 /* prints the prompt line */
 void print_prompt();
 
+/* initialises the shell */
+void init();
+
+/* adds line to history */
+void add_history(char *line);
 
 /* acts on the given tokens */
 int act(char **tokens);

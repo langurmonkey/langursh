@@ -16,7 +16,7 @@ langursh.o: langursh.c
 	$(CC) -c langursh.c $(CFLAGS)
 
 parser.o: parser.c
-	$(CC) -c parser.c
+	$(CC) -c parser.c $(CFLAGS)
 
 man: langursh.1
 

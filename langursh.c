@@ -61,13 +61,7 @@ int main(int argc, char **argv){
     char *line;
     char **tokens;
 
-   
-    printf("Langur Shell (langursh), version %s\n", VERSION);
-    printf("Copyright © 2019 Toni Sagristà Sellés\n\n");
-   
-    struct passwd *pw = getpwuid(getuid());
-    homedir = pw->pw_dir;
-
+    init(); 
 
     while(*running == 1){
         /* print the prompt */
@@ -75,29 +69,35 @@ int main(int argc, char **argv){
 
         /* read user line */
         line = read_line();
-        char *linecpy = str_copy(line);
 
-        /* tokenize */
-        tokens = tokenize_line(line);
+        if(line && strlen(line) > 0) {
+            /* add to history if not null */
+            add_history(line);
 
-        /* act */
-        int ret;
-        if(*tokens && (ret = act(tokens)) == 0) {
-            // exit
-            *running = 0;
-        }
+            /* tokenize */
+            tokens = tokenize_line(line);
 
-        /* add to history */
-        if(*tokens && ret == 1) {
-            free(history[hist_i]);
-            history[hist_i] = linecpy;
-            hist_i = (hist_i + 1) % HISTORY_SIZE;
-            hist_size = min(HISTORY_SIZE, hist_size + 1);
+            /* act */
+            int ret;
+            if(*tokens && (ret = act(tokens)) == 0) {
+                // exit
+                *running = 0;
+            }
         }
     }
 
     dispose();
     return EXIT_SUCCESS;
+}
+
+void init() {
+    printf("###############################################\n");
+    printf("Langur Shell (langursh), version %s\n", VERSION);
+    printf("Copyright © 2019 Toni Sagristà Sellés\n");
+    printf("######### Use at your own risk! ###############\n\n");
+   
+    struct passwd *pw = getpwuid(getuid());
+    homedir = pw->pw_dir;
 }
 
 void dispose() {
@@ -126,6 +126,17 @@ int act(char **tokens) {
     }
     // no built-in command, run process
     return run_process(tokens);
+}
+
+void add_history(char *line) {
+    /* omit 'history' and '!' commands */
+    if(!starts_with(line, "history")
+            && !starts_with(line, "!")){
+        free(history[hist_i]);
+        history[hist_i] = str_copy(line);
+        hist_i = (hist_i + 1) % HISTORY_SIZE;
+        hist_size = min(HISTORY_SIZE, hist_size + 1);
+    }
 }
 
 int run_line(char *line) { 
@@ -216,7 +227,7 @@ int run_cd(char **args) {
 
 int run_help(char **args) {
     printf("Langur Shell (langursh), version %s\n", VERSION);
-    printf("\"A good monkey's shell\"\n");
+    printf("\"A good monkey's shell. Use at your own risk!\"\n");
     printf("Copyright © 2019 Toni Sagristà Sellés\n\n");
 
     printf("Built-in commands:\n");
@@ -270,8 +281,8 @@ void print_prompt(){
         perror("langursh: gethostname() error");
     }
     /* username */
-    if((username = getlogin()) == NULL) {
-        perror("langursh: getlogin() error");
+    if((username = getenv("USER")) == NULL) {
+        perror("langursh: getenv(\"USER\") error");
     }
     
     printf("%s@%s:%s $ ", username, hostname, cwd);
